@@ -18,5 +18,4 @@ def check_output(items_to_check):
     for item in items_to_check:
         ensure_tensor(item)
         ensure_gpu(item)
-    
     return items_to_check
