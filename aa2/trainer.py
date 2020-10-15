@@ -67,7 +67,7 @@ class Trainer:
         print("trainx_shape:", train_X.shape)
         inputsize = train_X.shape[2]  # = 7, number of features per word
         samplesize = train_X.shape[1]
-        outputsize = 5 # number of ner labels
+        outputsize = 6 # number of ner labels
         hiddensize = hyperparameters["hidden_size"]
         
         self.device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
@@ -116,6 +116,7 @@ class Trainer:
                                 y_pred.append(pred_t)
                                 y_label.append(label_t)
                      
+            print(y_pred)
             scores = {}
             accuracy = accuracy_score(y_label, y_pred, normalize=True)
             scores['accuracy'] = accuracy
@@ -144,7 +145,7 @@ class Trainer:
         
         inputsize = list(test_X.shape)[2]  # = 7, number of features per word
         samplesize = list(test_X.shape)[1]
-        outputsize = 5 # number of ner labels
+        outputsize = 6 # number of ner labels
         
         checkpoint = self.load_model(best_model_path)
         hyperparameters = checkpoint["hyperparamaters"] 

@@ -252,7 +252,9 @@ class DataLoader(DataLoaderBase):
         
         # compare whether token is an entity. If not, assign label 0
         for t in id_tuples:
-            if t in label_tuples:
+            if t[0] == 0:
+                label = 5
+            elif t in label_tuples:
                 label = labels[label_tuples.index(t)]
             else:
                 label = 0
