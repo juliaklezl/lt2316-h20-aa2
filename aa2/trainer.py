@@ -1,4 +1,3 @@
-
 import os
 import torch
 import torch.nn as nn
@@ -41,14 +40,13 @@ class Trainer:
         torch.save(save_dict, os.path.join(self.dump_folder, model_name + ".pt"))
 
 
-    def load_model(self, model_path):  # had only self as argument - can we add more? - what does this function even do??
+    def load_model(self, model_path): 
         # Finish this function so that it loads a model and return the appropriate variables
         self.model_path = model_path
         
         checkpoint = torch.load(model_path)
         return checkpoint
         
-        #pass
 
 
     def train(self, train_X, train_y, val_X, val_y, model_class, hyperparameters):
@@ -66,14 +64,14 @@ class Trainer:
         epochs = hyperparameters["epochs"]
         model_name = hyperparameters["model_name"]
         
-        inputsize = list(train_X.shape)[2]  # = 7, number of features per word
-        samplesize = list(train_X.shape)[1]
+        print("trainx_shape:", train_X.shape)
+        inputsize = train_X.shape[2]  # = 7, number of features per word
+        samplesize = train_X.shape[1]
         outputsize = 5 # number of ner labels
-        hiddensize = inputsize//2  # might change this, seems like a reasonable number..
+        hiddensize = hyperparameters["hidden_size"]
         
         self.device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
         train_batches = Batcher(train_X, train_y, self.device, batch_size=batch_size, max_iter=epochs)
-        #test_batches = Batcher(val_X, val_y, self.device, batch_size=batch_size, max_iter=1)
         model = model_class(inputsize, hiddensize, outputsize, n_layers)
         model = model.to(self.device)
         
@@ -84,8 +82,6 @@ class Trainer:
             optimizer = optim.SGD(model.parameters(), lr=lr) 
             
         criterion = nn.NLLLoss()
-        #criterion = nn.MSELoss()
-        model.train()
         
         epoch = 0
         for split in train_batches:
@@ -94,7 +90,6 @@ class Trainer:
             for sentence, label in split:
                 optimizer.zero_grad()
                 pred = model(sentence.float(), self.device)
-                #loss = criterion(torch.argmax(pred, dim=2).float(), label.float()).to(self.device)
                 pred = pred.permute(0, 2, 1)        
                 loss = criterion(pred.float(), label).to(self.device)
                 tot_loss += loss
@@ -110,30 +105,17 @@ class Trainer:
             test_batches = Batcher(val_X, val_y, self.device, batch_size=batch_size, max_iter=1)
             for split in test_batches:
                 for sentence, label in split:
-                 #   with torch.no_grad():
-                    pred = model(sentence.float(), self.device)
-                #pred_l = pred.tolist()
-                #labels = label.tolist()
-                #print("predshape", pred.shape)
-                    for i in range(pred.shape[0]):
+                    with torch.no_grad():
+                        pred = model(sentence.float(), self.device)
+                        for i in range(pred.shape[0]):
                             pred_s = pred[i]
                             label_s = label[i]
-                            #print(label_s)
-                            #print(pred_s)
                             for j in range(len(pred_s)):
-                            #    print(label_s[j])
-                            #    print(pred_s[j])
-                            #    print(torch.argmax(pred_s[j]))
                                 pred_t = int(torch.argmax(pred_s[j]))
                                 label_t = int(label_s[j])
                                 y_pred.append(pred_t)
                                 y_label.append(label_t)
                      
-      
-            #print(len(y_pred))
-            #print(y_pred)
-            #print(len(y_label))
-            #print(y_label)
             scores = {}
             accuracy = accuracy_score(y_label, y_pred, normalize=True)
             scores['accuracy'] = accuracy
@@ -163,15 +145,16 @@ class Trainer:
         inputsize = list(test_X.shape)[2]  # = 7, number of features per word
         samplesize = list(test_X.shape)[1]
         outputsize = 5 # number of ner labels
-        hiddensize = inputsize//2  # might change this, seems like a reasonable number..
         
         checkpoint = self.load_model(best_model_path)
-        hyperparameters = checkpoint["hyperparamaters"] # misspelled to fit with already given save_model function
+        hyperparameters = checkpoint["hyperparamaters"] 
         batch_size = hyperparameters["batch_size"]
         epochs = hyperparameters["epochs"]
         n_layers = hyperparameters["number_layers"]
         model_name = hyperparameters["model_name"]
         model_state_dict = checkpoint["model_state_dict"]
+        
+        hiddensize = hyperparameters["hidden_size"]
         
         model = model_class(inputsize, hiddensize, outputsize, n_layers)
         model.load_state_dict(model_state_dict)
@@ -186,16 +169,16 @@ class Trainer:
         y_pred = []
         for batch in batches:
             for sentence, label in batch:
-                pred = model(sentence.float(), self.device)
-                for i in range(pred.shape[0]):
-                    pred_s = pred[i]
-                    label_s = label[i]
-                    #print(pred_s.shape)
-                    for j in range(len(pred_s)):
-                        pred_t = int(torch.argmax(pred_s[j]))
-                        label_t = int(label_s[j])
-                        y_pred.append(pred_t)
-                        y_label.append(label_t)
+                with torch.no_grad():
+                    pred = model(sentence.float(), self.device)
+                    for i in range(pred.shape[0]):
+                        pred_s = pred[i]
+                        label_s = label[i]
+                        for j in range(len(pred_s)):
+                            pred_t = int(torch.argmax(pred_s[j]))
+                            label_t = int(label_s[j])
+                            y_pred.append(pred_t)
+                            y_label.append(label_t)
                         
         scores = {}
         accuracy = accuracy_score(y_label, y_pred, normalize=True)
