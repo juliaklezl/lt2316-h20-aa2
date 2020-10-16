@@ -29,28 +29,28 @@ On the unseen test set, it reaches an accuracy of 96.95%, precision of 95.34%, r
 ## Notes on Part Bonus.
 
 I used the random sample function of a1 to find sentences for this. Which tokens can and cannot be separated depends on how tokenization was done, of course. So in my case, since I remove all punctuation between words, the system already has difficulties recognizing that something is a list of drugs (or groups, in this case), like in this phrase (I took only the relevant part of the sentence, since it's relatively long:
-
-'when administered with ethyl alcohol phenothiazines barbiturates mao inhibitors and other antidepressants' \
- 000    3     3       1              1            1   1          0   0     1
  
 |when|administered|with|ethyl|alcohol|phenothiazines|barbiturates|mao|inhibitors|and|other|antidepressants|
 |----|------------|----|-----|-------|--------------|------------|---|----------|---|-----|---------------|
 |0   |0           |0   |3    |3      |1             |1           |1  |1         |0  |0    |1              |
  
  I'm chosing the BIO scheme, since it's very simple, but sufficient to solve such problems. I also read that it is the most commonly used in the industry:
- 
- 'when administered with ethyl alcohol phenothiazines barbiturates mao inhibitors and other antidepressants'
-  O    O            O    B-3   B-3     B-1            B-1          B-1 I-1        O   O     B-1
+  
+|when|administered|with|ethyl|alcohol|phenothiazines|barbiturates|mao|inhibitors|and|other|antidepressants|
+|----|------------|----|-----|-------|--------------|------------|---|----------|---|-----|---------------|
+|O   |O           |O   |B-3  |B-3    |B-1           |B-1         |B-1|B-1       |O  |O    |B-1            |
   
 This is useful to mark the boundaries of most tokens we're facing here, but does not solve the problem of compound words that are separated by other words, or even overlapping such as in the following example:
 
-'potentiation occurs with ganglionic or peripheral adrenergic blocking drugs'
- 0            0      0    1          0  1          1          1        1
+|potentiation|occurs|with|ganglionic|or|peripheral|adrenergic|blocking|drugs|
+|------------|------|----|----------|--|----------|----------|--------|-----|
+| 0          |0     |0   |1         |0 |1         |1         |1       |1    |
  
  the BIO encoding might look somthing like this below, but is not able to capture the fact that this talks about ganglionic blocking drugs *or* peripheral adregenic blocking drugs, since it assumes that words that belong together always stand next to each other, and that one word can only be part of one compound. 
  
-'potentiation occurs with ganglionic or peripheral adrenergic blocking drugs'
- O            O      O    B-1        O  B-1        I-1        I-1      I-1
+|potentiation|occurs|with|ganglionic|or|peripheral|adrenergic|blocking|drugs|
+|------------|------|----|----------|--|----------|----------|--------|-----|
+|O           |O     |O   |B-1       |O |B-1       |I-1       |I-1     |I-1  |
  
 More complex encoding schemes, such as linear CRF are able to deal with this better (at least with the discontinuous part), but using them would significantly increase the complexity for all sentences, so since these problematic types of tokens are rather rare in the dataset we're dealing with, I think I would still choose the basic BIO-encoding if I were to work on the tokenization/encoding of this data in more detail. 
   
