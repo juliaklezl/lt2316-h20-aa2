@@ -31,7 +31,11 @@ On the unseen test set, it reaches an accuracy of 96.95%, precision of 95.34%, r
 I used the random sample function of a1 to find sentences for this. Which tokens can and cannot be separated depends on how tokenization was done, of course. So in my case, since I remove all punctuation between words, the system already has difficulties recognizing that something is a list of drugs (or groups, in this case), like in this phrase (I took only the relevant part of the sentence, since it's relatively long:
 
 'when administered with ethyl alcohol phenothiazines barbiturates mao inhibitors and other antidepressants' \
- 0&nbsp;&nbsp;&nbsp;&nbsp;0&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;0    3     3       1              1            1   1          0   0     1
+ 000    3     3       1              1            1   1          0   0     1
+ 
+|when|administered|with|ethyl|alcohol|phenothiazines|barbiturates|mao|inhibitors|and|other|antidepressants|
+|----|------------|----|-----|-------|--------------|------------|---|----------|---|-----|---------------|
+|0   |0           |0   |3    |3      |1             |1           |1  |1         |0  |0    |1              |
  
  I'm chosing the BIO scheme, since it's very simple, but sufficient to solve such problems. I also read that it is the most commonly used in the industry:
  
