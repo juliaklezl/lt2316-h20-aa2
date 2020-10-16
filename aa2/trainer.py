@@ -116,7 +116,7 @@ class Trainer:
                                 y_pred.append(pred_t)
                                 y_label.append(label_t)
                      
-            print(y_pred)
+    
             scores = {}
             accuracy = accuracy_score(y_label, y_pred, normalize=True)
             scores['accuracy'] = accuracy
